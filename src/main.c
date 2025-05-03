@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define NB_TRAINS 1
+#define NB_TRAINS 3
 
 typedef struct train_s {
     char *name;
@@ -62,36 +62,36 @@ void *train_running(void *arg)
 
 int main(void)
 {
-    pthread_t train1;
-    pthread_t train2;
+    pthread_t threads[NB_TRAINS];
+    train_t trains[NB_TRAINS];
 
     pthread_mutex_t bridge = PTHREAD_MUTEX_INITIALIZER;
 
-    train_t arg[] = {
-        {"Express 1", &bridge},
-        {"Old Locomotive", &bridge}
+    char *names[] = {
+        "Express 1",
+        "Old Locomotive",
+        "TGV"
     };
 
-    if (pthread_create(&train1, NULL, train_running, &arg[0]) != 0) {
-        perror("Thread_create (train1): ");
-        return 84;
+    for (int i = 0; i < NB_TRAINS; i++) {
+        trains[i].name = names[i];
+        trains[i].bridge = &bridge;
+    
+        if (pthread_create(&threads[i], NULL, train_running, &trains[i]) != 0) {
+            perror("Thread_create: ");
+            return 84;
+        }
+        sleep(2);
     }
 
-    sleep(1);
+    fflush(stdout);
+    printf("All trains started their journey.\n");
 
-    if (pthread_create(&train2, NULL, train_running, &arg[1]) != 0) {
-        perror("Thread_create (train1): ");
-        return 84;
-    }
-
-    if (pthread_join(train1, NULL) != 0) {
-        perror("pthread_join (train1): ");
-        return 84;
-    }
-
-    if (pthread_join(train2, NULL) != 0) {
-        perror("pthread_join (train2): ");
-        return 84;
+    for (int i = 0; i < NB_TRAINS; i++) {
+        if (pthread_join(threads[i], NULL) != 0) {
+            perror("pthread_join: ");
+            return 84;
+        }
     }
 
     printf("All trains are stopped.\n");
