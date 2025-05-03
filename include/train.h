@@ -14,10 +14,13 @@
     #include <unistd.h>
 
     #define NB_TRAINS 3
+    #define NB_MAX 2
 
 typedef struct train_s {
     char *name;
     pthread_mutex_t *bridge;
+    pthread_cond_t *bridge_status;
+    int *trains_on_bridge;
 } train_t;
 
 // TRAINS FUNCTIONS
