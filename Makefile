@@ -7,7 +7,7 @@
 
 CC	=	gcc
 
-IFLAGS	=	-lpthread
+IFLAGS	=	-lpthread -I include/
 
 CFLAGS	=	-W -Wall -Werror -Wextra $(IFLAGS)
 
@@ -16,7 +16,6 @@ SRC	=	$(shell find "./src" -name *.c)
 OBJ	=	$(SRC:.c=.o)
 
 EXEC	=	trains.exe
-
 
 all: $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(EXEC)
