@@ -11,17 +11,10 @@ bool train_check_bridge(void *arg)
 {
     train_t *train = (train_t *)arg;
 
-    pthread_mutex_lock(train->bridge);
-    
     if (*(train->trains_on_bridge) < NB_MAX) {
         printf("%s has permission to cross bridge.\n", train->name);
-        (*train->trains_on_bridge)++;
-        pthread_mutex_unlock(train->bridge);
         return true;
     }
-    printf("%s is waiting for crossing the bridge\n", train->name);
-    pthread_cond_wait(train->bridge_status, train->bridge);
-    pthread_mutex_unlock(train->bridge);
     return false;
 }
 
@@ -29,10 +22,24 @@ void train_cross_bridge(void *arg)
 {
     train_t *train = (train_t *)arg;
 
+    while (pthread_mutex_trylock(train->bridge) != 0) {
+        pthread_cond_wait(train->bridge_status, train->bridge); // For accessing future mutex if locked
+        continue;
+    }
+
+    *train->trains_on_bridge += 1;
+    pthread_mutex_unlock(train->bridge);
     printf("%s is crossing bridge...\n", train->name);
+    
+    printf("IN CROSS\n");
     sleep(6);
+    
+    while (pthread_mutex_trylock(train->bridge) != 0) {
+        pthread_cond_wait(train->bridge_status, train->bridge); // For accessing future mutex if locked
+        continue;
+    }
+    
     printf("%s finished crossing the bridge !\n", train->name);
-    pthread_mutex_lock(train->bridge);
     (*train->trains_on_bridge)--;
     pthread_cond_broadcast(train->bridge_status);
     pthread_mutex_unlock(train->bridge);

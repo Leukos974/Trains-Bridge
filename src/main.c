@@ -30,7 +30,7 @@ int main(void)
             perror("Thread_create: ");
             return 84;
         }
-        sleep(1);
+        sleep(2);
     }
     fflush(stdout);
     printf("All trains started their journey.\n");
